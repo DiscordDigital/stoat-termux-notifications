@@ -83,7 +83,6 @@ class MyClient(Client):
                     channelTracker[message.channel.id] = timeNow
                 
                 timeDiff = timeNow - channelTracker[message.channel.id]
-                print(str(timeDiff))
 
                 if timeDiff > notificationBuffer or newConversation:
                     if dmChannel:
