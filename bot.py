@@ -16,7 +16,7 @@ notificationBuffer = int(getenv('notificationBuffer'))
 channelTracker = {}
 
 emojiPattern = re.compile(r'\:(.*?[^ ])\:', flags=re.DOTALL)
-userPattern = re.compile(r'<@(.*[^ ])>', flags=re.DOTALL)
+userPattern = re.compile(r'<@(.*?[^ ])>', flags=re.DOTALL)
 
 async def resolve_ids(**kwargs):
     global emojiPattern
