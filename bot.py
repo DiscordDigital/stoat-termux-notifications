@@ -15,6 +15,34 @@ notificationBuffer = int(getenv('notificationBuffer'))
 
 channelTracker = {}
 
+emojiPattern = re.compile(r'\:(.*?[^ ])\:', flags=re.DOTALL)
+userPattern = re.compile(r'<@(.*[^ ])>', flags=re.DOTALL)
+
+async def resolve_ids(**kwargs):
+    global emojiPattern
+    global userPattern
+    type = kwargs['type']
+    content = kwargs['content']
+    client = kwargs['client']
+
+    if type == "emoji":
+        rePattern = emojiPattern
+    elif type == "user":
+        rePattern = userPattern
+    patternMatches = rePattern.findall(content)
+    if len(patternMatches) > 0:
+        for id in patternMatches:
+            try:
+                if type == "emoji":
+                    emoji = await client.fetch_emoji(id)
+                    content = content.replace(":"+id+":", ":"+emoji.name+":")
+                elif type == "user":
+                    user = await client.fetch_user(id)
+                    content = content.replace("<@"+id+">", "@"+user.name+"#"+user.discriminator)
+            except Exception:
+                pass
+    return content
+
 async def send_notification(**kwargs):
     attachments = kwargs['attachments']
     client = kwargs['client']
@@ -23,16 +51,8 @@ async def send_notification(**kwargs):
     nonce = kwargs['nonce']
     notificationType = kwargs['notificationType']
 
-    pattern = re.compile(r'\:(.*?[^ ])\:', flags=re.DOTALL)
-    matches = pattern.findall(content)
-
-    if len(matches) > 0:
-        for id in matches:
-            try:
-                emoji = await client.fetch_emoji(id)
-                content = content.replace(":"+id+":", ":"+emoji.name+":")
-            except Exception:
-                pass
+    content = await resolve_ids(type="emoji", content=content, client=client)
+    content = await resolve_ids(type="user", content=content, client=client)
 
     if len(attachments) > 0:
         attachmentFilenames = [attachment.filename for attachment in attachments]
